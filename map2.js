@@ -1,6 +1,8 @@
 function load () {
 	
 	var map = document.getElementById("map");
+	var nomeMeses = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Ago", "Set", "Out", "Nov", "Dec" ];
 	
 	if (GBrowserIsCompatible()) {
 
@@ -22,47 +24,69 @@ function load () {
 		}
 		
 		function formatTabOne (input) {				
-			var html 	 = "<div class=\"bubble\" style=\"overflow:auto;height:300px\">";
+			var html 	 = "<div class=\"bubble\" style=\"overflow:auto;width:700px;height:300px\">";
 			html 		+= "<h1>"+input.titulo+"</h1>";
 			info = "";
  			//input.info.sort(function(a,b){return a.quantidade - b.quantidade});
  			//input.info.reverse();
  			
  			var mapa = {};
-// 			alert(input.info);
- 			for (var i = 0; i < input.info.length; i++) { 			
+// 			alert(input.info.length);
+ 			for (var i = 0; i < input.info.length; i++) {
+ 			    var o = input.info[i].ocorrencia;
 //			    alert(input.info[i].data+" - "+new Date(input.info[i].data));
- 			    if(! input.info[i].ocorrencia in mapa) {
-			        mapa[input.info[i].ocorrencia] = {};
+ 			    if( !(o in mapa) ) {
+			        mapa[o] = {};
 			    } else {
-			        mapa[input.info[i].ocorrencia][new Date(input.info[i].data)] = input.info[i].quantidade;
+			        var data = new Date(input.info[i].data);
+			        mapa[o][data] = input.info[i].quantidade;
 			    }
 			}
  			
-// 			limite = input.info.length;
- 			limite = Math.min(2, input.info.length);
+ 			limite = input.info.length;
+ 			//limite = Math.min(10, input.info.length);
 			for (var i = 0; i < limite; i++) {
+    			var o = input.info[i].ocorrencia;
 //			    info += "<br>"+input.info[i].ocorrencia + " " + input.info[i].data + " "+ input.info[i].quantidade;
-                mapa[input.info[i].ocorrencia].sort(function(a,b){return a < b});
+     			var datas = [];
+     			for(var d in mapa[o]) {
+     			    datas.push(new Date(d));
+     			}
+     			
+     			// se não há informação então não gera o gráfico
+     			if(datas.length == 0) 
+     			    continue;
+     			
+                datas.sort();
+                var meses = "";//"|Jan|Fev|Mar";
+                var valores = "";//"50,40,80";
                 var maxi = 0;
-                var valores = [input.info[i].ocorrencia];
-                for (var j = 0; j < limite; j++) {
-                    if(maxi < input.info[i].quantidade)
-                        maxi = input.info[i].quantidade;
+                var last = 0; // ajuste para apresentar grafico com apenas 1 valor
+                for(var d in mapa[o]) {
+                    var valor = mapa[o][d];
+                    meses += "|" + nomeMeses[new Date(d).getMonth()];
+                    valores += valor+",";
+                    if(parseInt(valor) > maxi) maxi = parseInt(valor);
+                    last = valor;
                 }
-                url = "http://chart.apis.google.com/chart"+
-                       "?chxl=0:|Jan|Feb|Mar|Jun|Jul|Aug|Set|Out|Nov|Dez"+
-                       "&chxr=1,0,"+maxi
-                       "&chxt=x,y"+
-                       "&chs=300x110"+
-                       "&cht=lc"+
-                       "&chd=t:50.035,58.398,81.091,91.174,82.181,78.901"+
-                       "&chdl=Ocorrências"+
-                       "&chg=25,25"+
-                       "&chls=0.75"+
-                       "&chtt=Dado+de+Segurança+Pública+de+"+input.info[i].cidade;
+                //valores = valores.substring(0, valores.length-1);
+                valores += valor; // repete ultimo valor
+                
+                var url = "http://chart.apis.google.com/chart"+
+                            "?chxl=0:"+meses+
+                            "&chxr=1,0,"+(maxi+5)+
+                            "&chxt=x,y"+
+                            "&chs=300x150"+
+                            "&cht=lc"+
+                            "&chds=0,"+(maxi+5)+
+                            "&chd=t:"+valores+
+                            "&chdl="+o.replace(/\s/g, "+")+
+                            "&chdlp=t"+
+                            "&chg=25,25"+
+                            "&chls=0.75,-1,-1";
                 info += "<img src="+url+">";
 			}
+			
 			html 		+= "<p>" + info + "</p>";
 			html		+= "</div>";					
 			return html;			
@@ -93,10 +117,9 @@ function load () {
 		}
 					
 	    function createMarker(input) {
-    	    //alert(input.latitude +","+ input.longitude);
 			var marker = new GMarker(new GLatLng(input.latitude, input.longitude), makeIcon());
-			var tabs_array	= [ new GInfoWindowTab("Preview", formatTabOne(input) ) ];
 			GEvent.addListener(marker, "click", function() {
+			    var tabs_array	= [ new GInfoWindowTab("Preview", formatTabOne(input) ) ];
 				marker.openInfoWindowTabsHtml(tabs_array);
 			});
 			

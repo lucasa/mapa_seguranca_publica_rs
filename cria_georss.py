@@ -39,16 +39,16 @@ for row in rows:
             else:
                 place, (lat, lng) = g.geocode(local)
             data[cidade] = {}
-            data[cidade]['nome'] = cidade
+            data[cidade]['nome'] = "\""+cidade+"\""
             data[cidade]['ocorrencias'] = []
-            data[cidade]['titulo'] = "%s: %.5f, %.5f" % (cidade, lat, lng)
+            data[cidade]['titulo'] = "\"%s\": %.5f, %.5f" % (cidade, lat, lng)
             data[cidade]['info'] = []
             data[cidade]['latitude'] = lat
             data[cidade]['longitude'] = lng
             localizacoes[cidade] = (lat, lng)
             #print data[cidade]['titulo']
 
-        data[cidade]['info'].append({"data":row[1], "ocorrencia":row[2], "quantidade":row[3]})
+        data[cidade]['info'].append({"data":row[1], "ocorrencia":"\""+row[2]+"\"", "quantidade":row[3]})
         print cidade, {"data":row[1], "ocorrencia":row[2], "quantidade":row[3]}
         #print row
         i+=1
